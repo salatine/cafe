@@ -1,0 +1,6 @@
+inteiro x = 1!
+real y!
+
+y = 2.0!
+
+imprimir(y+x)!
