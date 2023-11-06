@@ -23,7 +23,7 @@ public class Parser {
     }
 
     public ProgramNode parseTopLevel() {
-        ArrayList<Node> statements = new ArrayList<>();
+        ArrayList<StatementNode> statements = new ArrayList<>();
         while (!tokenStream.eof()) {
             statements.add(parseStatement());
 ;           if (!tokenStream.eof()) {
@@ -34,7 +34,7 @@ public class Parser {
         return new ProgramNode(statements);
     }
 
-    private Node parseStatement() {
+    private StatementNode parseStatement() {
         if (isDataType(DataType.INT) || isDataType(DataType.DOUBLE)) {
             return parseDeclaration();
         } else if (isKeyword(Keyword.PRINT)) {
@@ -102,7 +102,11 @@ public class Parser {
                 ExpressionNode expression;
 
                 if (op.equals(Operator.EQUAL_SIGN)) {
-                    expression = new AssignmentNode(left, right);
+                    if (!(left instanceof IdentifierNode identifierNode)) {
+                        throw tokenStream.croak("Invalid left-hand side in assignment");
+                    }
+
+                    expression = new AssignmentNode(identifierNode, right);
                 } else {
                     expression = new BinaryExpressionNode(op, left, right);
                 }

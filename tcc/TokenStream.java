@@ -21,6 +21,10 @@ public class TokenStream {
     }
 
     public Token next() {
+        if (eof()) {
+            throw inputStream.croak("Unexpected end of input");
+        }
+
         Token token = current.orElseGet(this::readNext);
         current = Optional.empty();
         return token;

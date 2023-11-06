@@ -1,3 +1,3 @@
 package tcc.nodes;
 
-public record AssignmentNode(Node left, Node right) implements ExpressionNode {}
+public record AssignmentNode(IdentifierNode identifier, ExpressionNode expression) implements ExpressionNode {}

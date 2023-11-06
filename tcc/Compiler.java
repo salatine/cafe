@@ -1,5 +1,6 @@
 package tcc;
 
+import tcc.nodes.ProgramNode;
 import tcc.tokens.Token;
 
 import java.io.IOException;
@@ -14,15 +15,7 @@ public class Compiler {
         InputStream inputStream = new InputStream(input);
         TokenStream tokenStream = new TokenStream(inputStream);
         Parser parser = new Parser(tokenStream);
-        System.out.println(parser.parseTopLevel());
-
+        SemanticAnalyzer semanticAnalyzer = new SemanticAnalyzer();
+        semanticAnalyzer.analyze(parser.parseTopLevel());
     }
-
-//    public String printToken(Token t) {
-//        return switch (t) {
-//            case IntToken it -> "int: " + it.getValue() * 2;
-//            case OperatorToken pt -> "punc: " + pt.getValue().getValue() * 2;
-//            case FloatToken ft -> null;
-//        };
-//    }
 }

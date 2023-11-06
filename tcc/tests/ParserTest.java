@@ -16,8 +16,8 @@ public class ParserTest {
         return new Parser(tokenStream);
     }
 
-    public ProgramNode createProgram(Node... nodes) {
-        return new ProgramNode(List.of(nodes));
+    public ProgramNode createProgram(StatementNode... statements) {
+        return new ProgramNode(List.of(statements));
     }
 
     @Test
@@ -55,6 +55,37 @@ public class ParserTest {
     }
 
     @Test
+    public void testDeclarationWithoutInitialization() {
+        String input = "inteiro a!";
+
+        ProgramNode expected = createProgram(
+            new DeclarationNode(
+                DataType.INT,
+                new IdentifierNode("a"),
+                Optional.empty()
+            )
+        );
+
+        Parser parser = createParser(input);
+        Assert.assertEquals(expected, parser.parseTopLevel());
+    }
+
+    @Test
+    public void testDeclarationWithoutValue() {
+        String input = "inteiro a = ";
+        Parser parser = createParser(input);
+        Assert.assertThrows(RuntimeException.class, parser::parseTopLevel);
+    }
+
+    @Test
+    public void testInvalidDeclaration() {
+        String input = "inteiro";
+        Parser parser = createParser(input);
+        RuntimeException exception = Assert.assertThrows(RuntimeException.class, parser::parseTopLevel);
+        Assert.assertTrue(!exception.getMessage().contains(""));
+    }
+
+    @Test
     public void testAssignment() {
         String input = "i = 1!";
 
@@ -67,6 +98,20 @@ public class ParserTest {
 
         Parser parser = createParser(input);
         Assert.assertEquals(expected, parser.parseTopLevel());
+    }
+
+    @Test
+    public void testMultipleAssignments() {
+        String input = "a = b = 2";
+        Parser parser = createParser(input);
+        Assert.assertThrows(RuntimeException.class, parser::parseTopLevel);
+    }
+
+    @Test
+    public void testInvalidAssignment() {
+        String input = "(1 + 2) = 3 + 4";
+        Parser parser = createParser(input);
+        Assert.assertThrows(RuntimeException.class, parser::parseTopLevel);
     }
 
     @Test
@@ -94,7 +139,13 @@ public class ParserTest {
         );
 
         Parser parser = createParser(input);
-
         Assert.assertEquals(expected, parser.parseTopLevel());
+    }
+
+    @Test
+    public void testUnbalancedParenthesis() {
+        String input = "((1 + 2) * 3";
+        Parser parser = createParser(input);
+        Assert.assertThrows(RuntimeException.class, parser::parseTopLevel);
     }
 }
