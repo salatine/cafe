@@ -83,7 +83,7 @@ public class TokenStream {
     }
 
     private boolean isWhitespace(char ch) {
-        return " \t\n".indexOf(ch) >= 0;
+        return " \t\r\n".indexOf(ch) >= 0;
     }
 
     private Token readNumber(char ch) {
