@@ -82,7 +82,7 @@ public class ParserTest {
         String input = "inteiro";
         Parser parser = createParser(input);
         RuntimeException exception = Assert.assertThrows(RuntimeException.class, parser::parseTopLevel);
-        Assert.assertTrue(!exception.getMessage().contains(""));
+        Assert.assertTrue(exception.getMessage().contains("Unexpected end of input"));
     }
 
     @Test
@@ -102,16 +102,50 @@ public class ParserTest {
 
     @Test
     public void testMultipleAssignments() {
-        String input = "a = b = 2";
+        String input = "a = b = 2!";
         Parser parser = createParser(input);
-        Assert.assertThrows(RuntimeException.class, parser::parseTopLevel);
+        Assert.assertEquals(
+            createProgram(
+                new AssignmentNode(
+                    new IdentifierNode("a"),
+                    new AssignmentNode(
+                        new IdentifierNode("b"),
+                        new IntNode(2)
+                    )
+                )
+            ),
+            parser.parseTopLevel()
+        );
+    }
+
+    @Test
+    public void testMultipleAssignmentsWithExpression() {
+        String input = "a = b = c + 1";
+        Parser parser = createParser(input);
+        Assert.assertEquals(
+            createProgram(
+                new AssignmentNode(
+                    new IdentifierNode("a"),
+                    new AssignmentNode(
+                        new IdentifierNode("b"),
+                        new BinaryExpressionNode(
+                            Operator.PLUS_SIGN,
+                            new IdentifierNode("c"),
+                            new IntNode(1)
+                        )
+                    )
+                )
+            ),
+            parser.parseTopLevel()
+        );
     }
 
     @Test
     public void testInvalidAssignment() {
-        String input = "(1 + 2) = 3 + 4";
+        String input = "(1 + 2) = 3 + 4!";
         Parser parser = createParser(input);
-        Assert.assertThrows(RuntimeException.class, parser::parseTopLevel);
+        RuntimeException exception = Assert.assertThrows(RuntimeException.class, parser::parseTopLevel);
+        Assert.assertTrue(exception.getMessage().contains("Invalid left-hand side in assignment"));
     }
 
     @Test
@@ -146,6 +180,47 @@ public class ParserTest {
     public void testUnbalancedParenthesis() {
         String input = "((1 + 2) * 3";
         Parser parser = createParser(input);
-        Assert.assertThrows(RuntimeException.class, parser::parseTopLevel);
+        RuntimeException exception = Assert.assertThrows(RuntimeException.class, parser::parseTopLevel);
+        Assert.assertTrue(exception.getMessage().contains("Expecting punctuation: \")\""));
+    }
+
+    @Test
+    public void testAssociativeSumBinaryExpression() {
+        String input = "1 + 2 + 3!";
+        Parser parser = createParser(input);
+        Assert.assertEquals(
+            createProgram(
+                new BinaryExpressionNode(
+                    Operator.PLUS_SIGN,
+                    new BinaryExpressionNode(
+                        Operator.PLUS_SIGN,
+                        new IntNode(1),
+                        new IntNode(2)
+                    ),
+                    new IntNode(3)
+                )
+            ),
+            parser.parseTopLevel()
+        );
+    }
+
+    @Test
+    public void testAssociativeMultiplicationBinaryExpression() {
+        String input = "2 * 2 / 2!";
+        Parser parser = createParser(input);
+        Assert.assertEquals(
+            createProgram(
+                new BinaryExpressionNode(
+                    Operator.DIVISION_SIGN,
+                    new BinaryExpressionNode(
+                        Operator.MULTIPLICATION_SIGN,
+                        new IntNode(2),
+                        new IntNode(2)
+                    ),
+                    new IntNode(2)
+                )
+            ),
+            parser.parseTopLevel()
+        );
     }
 }

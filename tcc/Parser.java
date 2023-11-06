@@ -92,11 +92,22 @@ public class Parser {
     }
 
     private ExpressionNode maybeBinary(ExpressionNode left, int myPrecedence) {
-        Token token = tokenStream.peek();
+        Optional<Token> optToken = tokenStream.peek();
+        if (optToken.isEmpty()) {
+            return left;
+        }
+        Token token = optToken.get();
+
         if (token instanceof OperatorToken ot) {
             Operator op = ot.value();
             int theirPrecedence = PRECEDENCE.get(op);
-            if (theirPrecedence > myPrecedence) {
+
+            boolean isMoreImportant = theirPrecedence > myPrecedence;
+            if (op.getAssociativity() == OperatorAssociativity.RIGHT) {
+                isMoreImportant = theirPrecedence >= myPrecedence;
+            }
+
+            if (isMoreImportant) {
                 tokenStream.next();
                 ExpressionNode right = maybeBinary(parseAtom(), theirPrecedence);
                 ExpressionNode expression;
@@ -135,13 +146,15 @@ public class Parser {
     }
 
     private boolean isPunctuation(Punctuation punc) {
-        Token token = tokenStream.peek();
-        return token instanceof PuncToken pt && pt.value() == punc;
+        return tokenStream.peek()
+            .map((token) -> token.equals(new PuncToken(punc)))
+            .orElse(false);
     }
 
     private boolean isKeyword(Keyword word) {
-        Token token = tokenStream.peek();
-        return token instanceof KeywordToken kt && kt.value() == word;
+         return tokenStream.peek()
+            .map((token) -> token.equals(new KeywordToken(word)))
+            .orElse(false);
     }
 
     private boolean isDataType(DataType type) {
@@ -149,13 +162,12 @@ public class Parser {
             case INT -> Keyword.INT;
             case DOUBLE -> Keyword.DOUBLE;
         };
-        Token token = tokenStream.peek();
-        return token instanceof KeywordToken kt && kt.value() == keyword;
+        return isKeyword(keyword);
     }
 
     private void skipPunctuation(Punctuation punc) {
         if (!isPunctuation(punc)) {
-            throw tokenStream.croak("Expecting punctuation: \"" + punc + "\"");
+            throw tokenStream.croak("Expecting punctuation: \"" + punc.getValue() + "\"");
         }
 
         tokenStream.next();
@@ -163,19 +175,20 @@ public class Parser {
 
     private void skipKeyword(Keyword word) {
         if (!isKeyword(word)) {
-            throw tokenStream.croak("Expecting keyword: \"" + word + "\"");
+            throw tokenStream.croak("Expecting keyword: \"" + word.getValue() + "\"");
         }
 
         tokenStream.next();
     }
 
     private boolean isOperator(Operator op) {
-        Token token = tokenStream.peek();
-        return token instanceof OperatorToken ot && ot.value() == op;
+        return tokenStream.peek()
+            .map((token) -> token.equals(new OperatorToken(op)))
+            .orElse(false);
     }
     private void skipOperator(Operator op) {
         if (!isOperator(op)) {
-            throw tokenStream.croak("Expecting operator: \"" + op + "\"");
+            throw tokenStream.croak("Expecting operator: \"" + op.getValue() + "\"");
         }
 
         tokenStream.next();

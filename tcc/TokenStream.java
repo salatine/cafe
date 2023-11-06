@@ -6,32 +6,34 @@ import java.util.*;
 // Analisador léxico
 public class TokenStream {
     private final InputStream inputStream;
-    private Optional<Token> current = Optional.empty();
+    private Optional<Optional<Token>> current = Optional.empty();
 
     public TokenStream(InputStream inputStream) {
         this.inputStream = inputStream;
     }
 
-    public Token peek() {
+    public Optional<Token> peek() {
         if (current.isEmpty()) {
             current = Optional.ofNullable(readNext());
         }
 
-        return current.orElse(null);
+        return current.get();
     }
 
     public Token next() {
-        if (eof()) {
-            throw inputStream.croak("Unexpected end of input");
-        }
+        return tryNext().orElseThrow(() -> inputStream.croak("Unexpected end of input"));
+    }
 
-        Token token = current.orElseGet(this::readNext);
+    private Optional<Token> tryNext() {
+
+
+        Optional<Token> token = current.orElseGet(this::readNext);
         current = Optional.empty();
         return token;
     }
 
     public boolean eof() {
-        return peek() == null;
+        return peek().isEmpty();
     }
 
     public RuntimeException croak(String msg) {
@@ -99,7 +101,9 @@ public class TokenStream {
                 break;
             }
             inputStream.next();
-            ch = inputStream.peek().orElseThrow();
+            Optional<Character> optCh = inputStream.peek();
+            if (optCh.isEmpty()) break;
+            ch = optCh.get();
         }
 
         if (hasDot) {
@@ -130,7 +134,7 @@ public class TokenStream {
             }
         }
 
-        return null;
+        throw inputStream.croak("Can't handle character: " + ch);
     }
 
     private OperatorToken readOperator(char ch) {
@@ -141,7 +145,7 @@ public class TokenStream {
             }
         }
 
-        return null;
+        throw inputStream.croak("Can't handle character: " + ch);
     }
 
     private void skipComment() {
@@ -152,22 +156,22 @@ public class TokenStream {
         return ch == '#';
     }
 
-    private Token readComment() {
+    private Optional<Token> readComment() {
         skipComment();
         return readNext();
     }
 
-    private Token readNext() {
+    private Optional<Token> readNext() {
         inputStream.readWhile(this::isWhitespace);
         Optional<Character> och = inputStream.peek();
-        if (och.isEmpty()) return null;
+        if (och.isEmpty()) return Optional.empty();
         char ch = och.get();
         if (isComment(ch)) return readComment();
-        if (isIdStart(ch)) return readIdent();
+        if (isIdStart(ch)) return Optional.of(readIdent());
 
-        if (isPunc(ch)) return readPunc(ch);
-        if (isDigit(ch)) return readNumber(ch);
-        if (isOpChar(ch)) return readOperator(ch);
+        if (isPunc(ch)) return Optional.of(readPunc(ch));
+        if (isDigit(ch)) return Optional.of(readNumber(ch));
+        if (isOpChar(ch)) return Optional.of(readOperator(ch));
 
         throw inputStream.croak("Invalid character: " + ch);
     }

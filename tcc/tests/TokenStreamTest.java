@@ -6,6 +6,8 @@ import org.junit.Test;
 import tcc.*;
 import tcc.tokens.*;
 
+import java.util.Optional;
+
 public class TokenStreamTest {
     private static final String INPUT = "inteiro x = 1! # oi \n real y = 2.0 + 3.0!";
     private TokenStream tokenStream;
@@ -37,10 +39,11 @@ public class TokenStreamTest {
 
     @Test
     public void testPeekAndNext() {
-        Token peekedToken = tokenStream.peek();
-        Assert.assertNotNull(peekedToken);
+        Optional<Token> peekedToken = tokenStream.peek();
+
+        Assert.assertTrue(peekedToken.isPresent());
         Assert.assertEquals(peekedToken, tokenStream.peek());
-        Assert.assertEquals(peekedToken, tokenStream.next());
+        Assert.assertEquals(peekedToken.get(), tokenStream.next());
         Assert.assertNotEquals(peekedToken, tokenStream.peek());
     }
 }
