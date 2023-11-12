@@ -47,11 +47,11 @@ public class InputStream {
         return peek().isEmpty();
     }
 
-    public RuntimeException croak(String msg) {
-        return new RuntimeException(msg + " (" + line + ":" + column + ")");
-    }
-
     public interface CharacterPredicate {
         boolean predicate(char ch);
+    }
+
+    public int getLine() {
+        return line;
     }
 }

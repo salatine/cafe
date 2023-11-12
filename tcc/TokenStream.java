@@ -1,5 +1,6 @@
 package tcc;
 
+import tcc.exceptions.InvalidCharacterException;
 import tcc.tokens.*;
 import java.util.*;
 
@@ -12,7 +13,7 @@ public class TokenStream {
         this.inputStream = inputStream;
     }
 
-    public Optional<Token> peek() {
+    public Optional<Token> peek() throws InvalidCharacterException {
         if (current.isEmpty()) {
             current = Optional.ofNullable(readNext());
         }
@@ -20,24 +21,17 @@ public class TokenStream {
         return current.get();
     }
 
-    public Token next() {
-        return tryNext().orElseThrow(() -> inputStream.croak("Unexpected end of input"));
-    }
+    public Optional<Token> next() throws InvalidCharacterException {
+        Optional<Token> token;
 
-    private Optional<Token> tryNext() {
+        if (current.isPresent()) {
+            token = current.get();
+            current = Optional.empty();
+        } else {
+            token = readNext();
+        }
 
-
-        Optional<Token> token = current.orElseGet(this::readNext);
-        current = Optional.empty();
         return token;
-    }
-
-    public boolean eof() {
-        return peek().isEmpty();
-    }
-
-    public RuntimeException croak(String msg) {
-        return inputStream.croak(msg);
     }
 
     private boolean isKeyword(String word) {
@@ -126,7 +120,7 @@ public class TokenStream {
         return new IdentifierToken(id);
     }
 
-    private PuncToken readPunc(char ch) {
+    private PuncToken readPunc(char ch) throws InvalidCharacterException {
         for (Punctuation punc : Punctuation.values()) {
             if (punc.getValue() == ch) {
                 inputStream.next();
@@ -134,10 +128,10 @@ public class TokenStream {
             }
         }
 
-        throw inputStream.croak("Can't handle character: " + ch);
+        throw new InvalidCharacterException(ch, inputStream.getLine());
     }
 
-    private OperatorToken readOperator(char ch) {
+    private OperatorToken readOperator(char ch) throws InvalidCharacterException {
         for (Operator op: Operator.values()) {
             if (op.getValue() == ch) {
                 inputStream.next();
@@ -145,7 +139,7 @@ public class TokenStream {
             }
         }
 
-        throw inputStream.croak("Can't handle character: " + ch);
+        throw new InvalidCharacterException(ch, inputStream.getLine());
     }
 
     private void skipComment() {
@@ -156,12 +150,12 @@ public class TokenStream {
         return ch == '#';
     }
 
-    private Optional<Token> readComment() {
+    private Optional<Token> readComment() throws InvalidCharacterException {
         skipComment();
         return readNext();
     }
 
-    private Optional<Token> readNext() {
+    private Optional<Token> readNext() throws InvalidCharacterException {
         inputStream.readWhile(this::isWhitespace);
         Optional<Character> och = inputStream.peek();
         if (och.isEmpty()) return Optional.empty();
@@ -173,6 +167,6 @@ public class TokenStream {
         if (isDigit(ch)) return Optional.of(readNumber(ch));
         if (isOpChar(ch)) return Optional.of(readOperator(ch));
 
-        throw inputStream.croak("Invalid character: " + ch);
+        throw new InvalidCharacterException(ch, inputStream.getLine());
     }
 }

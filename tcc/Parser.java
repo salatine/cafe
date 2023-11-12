@@ -1,8 +1,8 @@
 package tcc;
 
+import tcc.exceptions.*;
 import tcc.nodes.*;
 import tcc.tokens.*;
-
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Optional;
@@ -22,19 +22,25 @@ public class Parser {
         this.tokenStream = tokenStream;
     }
 
-    public ProgramNode parseTopLevel() {
+    public ProgramNode parseTopLevel() throws ParserException {
         ArrayList<StatementNode> statements = new ArrayList<>();
-        while (!tokenStream.eof()) {
+        while (peekToken().isPresent()) {
             statements.add(parseStatement());
-;           if (!tokenStream.eof()) {
-                skipPunctuation(Punctuation.EXCLAMATION_MARK);
-            }
+            skipPunctuation(Punctuation.EXCLAMATION_MARK);
         }
 
         return new ProgramNode(statements);
     }
 
-    private StatementNode parseStatement() {
+    private Token nextTokenOrThrow() throws ParserException {
+        try {
+            return tokenStream.next().orElseThrow(UnexpectedEOFException::new);
+        } catch (InvalidCharacterException e) {
+            throw new ParserException("Erro ao ler próximo token", e);
+        }
+    }
+
+    private StatementNode parseStatement() throws ParserException {
         if (isDataType(DataType.INT) || isDataType(DataType.DOUBLE)) {
             return parseDeclaration();
         } else if (isKeyword(Keyword.PRINT)) {
@@ -44,7 +50,7 @@ public class Parser {
         }
     }
 
-    private PrintCallNode parsePrint() {
+    private PrintCallNode parsePrint() throws ParserException {
         skipKeyword(Keyword.PRINT);
         skipPunctuation(Punctuation.OPEN_PARENTHESIS);
         ExpressionNode expression = parseExpression();
@@ -53,7 +59,7 @@ public class Parser {
         return new PrintCallNode(expression);
     }
 
-    private DeclarationNode parseDeclaration() {
+    private DeclarationNode parseDeclaration() throws ParserException {
         DataType type = parseDataType();
         IdentifierNode identifier = parseIdentifier();
         Optional<ExpressionNode> expression = Optional.empty();
@@ -65,34 +71,42 @@ public class Parser {
         return new DeclarationNode(type, identifier, expression);
     }
 
-    private DataType parseDataType() {
-        Keyword word = switch (tokenStream.next()) {
+    private DataType parseDataType() throws ParserException {
+        Keyword word = switch (nextTokenOrThrow()) {
             case KeywordToken kt -> kt.value();
-            default -> throw tokenStream.croak("Expected DataType keyword");
+            default -> throw new UnexpectedTokenException(KeywordToken.class);
         };
 
         return switch (word) {
             case INT -> DataType.INT;
             case DOUBLE -> DataType.DOUBLE;
-            default -> throw tokenStream.croak("Expected DataType keyword");
+            default -> throw new UnexpectedTokenException("esperado inteiro ou real");
         };
     }
 
-    private IdentifierNode parseIdentifier() {
-        String name = switch (tokenStream.next()) {
+    private IdentifierNode parseIdentifier() throws ParserException {
+        String name = switch (nextTokenOrThrow()) {
             case IdentifierToken it -> it.value();
-            default -> throw tokenStream.croak("Expected identifier");
+            default -> throw new UnexpectedTokenException(IdentifierToken.class);
         };
 
         return new IdentifierNode(name);
     }
 
-    private ExpressionNode parseExpression() {
+    private ExpressionNode parseExpression() throws ParserException {
         return maybeBinary(parseAtom(), 0);
     }
 
-    private ExpressionNode maybeBinary(ExpressionNode left, int myPrecedence) {
-        Optional<Token> optToken = tokenStream.peek();
+    private Optional<Token> peekToken() throws ParserException {
+        try {
+            return tokenStream.peek();
+        } catch (InvalidCharacterException e) {
+            throw new ParserException("Erro ao ler próximo token", e);
+        }
+    }
+
+    private ExpressionNode maybeBinary(ExpressionNode left, int myPrecedence) throws ParserException {
+        Optional<Token> optToken = peekToken();
         if (optToken.isEmpty()) {
             return left;
         }
@@ -108,13 +122,13 @@ public class Parser {
             }
 
             if (isMoreImportant) {
-                tokenStream.next();
+                nextTokenOrThrow();
                 ExpressionNode right = maybeBinary(parseAtom(), theirPrecedence);
                 ExpressionNode expression;
 
                 if (op.equals(Operator.EQUAL_SIGN)) {
                     if (!(left instanceof IdentifierNode identifierNode)) {
-                        throw tokenStream.croak("Invalid left-hand side in assignment");
+                        throw new InvalidAssigneeException();
                     }
 
                     expression = new AssignmentNode(identifierNode, right);
@@ -129,7 +143,7 @@ public class Parser {
         return left;
     }
 
-    private ExpressionNode parseAtom() {
+    private ExpressionNode parseAtom() throws ParserException {
         if (isPunctuation(Punctuation.OPEN_PARENTHESIS)) {
             skipPunctuation(Punctuation.OPEN_PARENTHESIS);
             ExpressionNode expression = parseExpression();
@@ -137,27 +151,27 @@ public class Parser {
             return expression;
         }
 
-        return switch(tokenStream.next()) {
+        return switch(nextTokenOrThrow()) {
             case IntToken it -> new IntNode(it.value());
             case DoubleToken dt -> new DoubleNode(dt.value());
             case IdentifierToken it -> new IdentifierNode(it.value());
-            default -> throw tokenStream.croak("Expected expression");
+            default -> throw new UnexpectedTokenException("esperado número ou identificador");
         };
     }
 
-    private boolean isPunctuation(Punctuation punc) {
-        return tokenStream.peek()
+    private boolean isPunctuation(Punctuation punc) throws ParserException {
+        return peekToken()
             .map((token) -> token.equals(new PuncToken(punc)))
             .orElse(false);
     }
 
-    private boolean isKeyword(Keyword word) {
-         return tokenStream.peek()
+    private boolean isKeyword(Keyword word) throws ParserException {
+         return peekToken()
             .map((token) -> token.equals(new KeywordToken(word)))
             .orElse(false);
     }
 
-    private boolean isDataType(DataType type) {
+    private boolean isDataType(DataType type) throws ParserException {
         Keyword keyword = switch (type) {
             case INT -> Keyword.INT;
             case DOUBLE -> Keyword.DOUBLE;
@@ -165,32 +179,32 @@ public class Parser {
         return isKeyword(keyword);
     }
 
-    private void skipPunctuation(Punctuation punc) {
+    private void skipPunctuation(Punctuation punc) throws ParserException {
         if (!isPunctuation(punc)) {
-            throw tokenStream.croak("Expecting punctuation: \"" + punc.getValue() + "\"");
+            throw new UnexpectedTokenException(new PuncToken(punc));
         }
 
-        tokenStream.next();
+        nextTokenOrThrow();
     }
 
-    private void skipKeyword(Keyword word) {
+    private void skipKeyword(Keyword word) throws ParserException {
         if (!isKeyword(word)) {
-            throw tokenStream.croak("Expecting keyword: \"" + word.getValue() + "\"");
+            throw new UnexpectedTokenException(new KeywordToken(word));
         }
 
-        tokenStream.next();
+        nextTokenOrThrow();
     }
 
-    private boolean isOperator(Operator op) {
-        return tokenStream.peek()
+    private boolean isOperator(Operator op) throws ParserException {
+        return peekToken()
             .map((token) -> token.equals(new OperatorToken(op)))
             .orElse(false);
     }
-    private void skipOperator(Operator op) {
+    private void skipOperator(Operator op) throws ParserException {
         if (!isOperator(op)) {
-            throw tokenStream.croak("Expecting operator: \"" + op.getValue() + "\"");
+            throw new UnexpectedTokenException(new OperatorToken(op));
         }
 
-        tokenStream.next();
+        nextTokenOrThrow();
     }
 }
