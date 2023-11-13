@@ -17,7 +17,7 @@ jobs:
         run: javac -d out/ -sourcepath tcc/ tcc/*.java tcc/exceptions/*.java tcc/nodes/*.java tcc/tokens/*.java
 
       - name: Create JAR file
-        run: jar -cvfm compiler.jar ./MANIFEST.MF out/tcc/*.class out/tcc/tokens/*.class out/tcc/nodes/*.class out/tcc/exceptions/*.class
+        run: jar -cvfe compiler.jar tcc.Compiler -C out/ .
 
       - name: Upload JAR as release
         uses: "marvinpinto/action-automatic-releases@latest"
