@@ -26,5 +26,9 @@ Note que todas as linhas em Café terminam com um ponto de exclamação.
 1. Clone o repositório e execute o comando `javac -d out/ -sourcepath tcc/ tcc/*.java tcc/exceptions/*.java tcc/nodes/*.java tcc/tokens/*.java` e você terá o compilador construído no diretório `out/tcc`.
 2. Caso deseja construir o arquivo JAR, entre no diretório `out/tcc` e execute o comando `jar -cvfe compiler.jar tcc.Compiler -C out/ .`.
 
-## Como rodar o compilador
-Para rodar o compilador, execute o comando `java tcc.Compiler arquivo.cafe` dentro da pasta `out` ou `java -jar compiler.jar arquivo.cafe`, onde `arquivo.cafe` é o arquivo escrito em Café. Esses comandos geram um arquivo com o mesmo nome, porém com a extensão .java. 
+## Rodando o compilador
+É possível rodar o compilador de duas maneiras: 
+1. Executando o comando `java tcc.Compiler arquivo.cafe` dentro da pasta `out`
+2. Executando o comando `java -jar compiler.jar arquivo.cafe` com o <a href="https://github.com/salatine/cafe-compiler/releases">arquivo JAR</a>.
+
+Onde `arquivo.cafe` é o arquivo escrito em Café. Rodar o compilador gerará um arquivo com o mesmo nome, porém com a extensão .java.
