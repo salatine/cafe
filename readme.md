@@ -25,7 +25,7 @@ Note que todas as linhas em Café terminam com um ponto de exclamação, essa é
 
 ## Construindo o compilador
 1. Clone o repositório e execute o comando `javac -d out/ -sourcepath tcc/ tcc/*.java tcc/exceptions/*.java tcc/nodes/*.java tcc/tokens/*.java` e você terá o compilador construído no diretório `out/tcc`.
-2. Caso deseja construir o arquivo JAR, entre no diretório `out/tcc` e execute o comando `jar -cvfe compiler.jar tcc.Compiler -C out/ .`.
+2. Caso deseja construir o arquivo JAR, execute o comando `jar -cvfe compiler.jar tcc.Compiler -C out/ .`.
 
 ## Rodando o compilador
 É possível rodar o compilador de duas maneiras: 
