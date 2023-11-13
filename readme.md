@@ -20,7 +20,8 @@ real y = 1.2!
 imprimir(x * y)!
 ```
 
-Note que todas as linhas em Café terminam com um ponto de exclamação.
+Note que todas as linhas em Café terminam com um ponto de exclamação, essa é a indicação de final de linha da linguagem.
+
 
 ## Construindo o compilador
 1. Clone o repositório e execute o comando `javac -d out/ -sourcepath tcc/ tcc/*.java tcc/exceptions/*.java tcc/nodes/*.java tcc/tokens/*.java` e você terá o compilador construído no diretório `out/tcc`.
@@ -28,7 +29,7 @@ Note que todas as linhas em Café terminam com um ponto de exclamação.
 
 ## Rodando o compilador
 É possível rodar o compilador de duas maneiras: 
-1. Executando o comando `java tcc.Compiler arquivo.cafe` dentro da pasta `out`
+1. Executando o comando `java tcc.Compiler arquivo.cafe` dentro da pasta `out`.
 2. Executando o comando `java -jar compiler.jar arquivo.cafe` com o <a href="https://github.com/salatine/cafe-compiler/releases">arquivo JAR</a>.
 
 Onde `arquivo.cafe` é o arquivo escrito em Café. Rodar o compilador gerará um arquivo com o mesmo nome, porém com a extensão .java.
