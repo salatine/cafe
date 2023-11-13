@@ -1,0 +1,30 @@
+name: build
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install JDK 21
+        uses: actions/setup-java@v1
+        with:
+          java-version: 21
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Compile java code
+        run: javac -d out/ -sourcepath tcc/ tcc/*.java tcc/exceptions/*.java tcc/nodes/*.java tcc/tokens/*.java
+
+      - name: Create JAR file
+        run: jar -cvfm compiler.jar ./MANIFEST.MF out/tcc/*.class out/tcc/tokens/*.class out/tcc/nodes/*.class out/tcc/exceptions/*.class
+
+      - name: Upload JAR as release
+        uses: "marvinpinto/action-automatic-releases@latest"
+        if: ${{ github.ref == 'refs/heads/main' }}
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          automatic_release_tag: latest
+          prerelease: true
+          files: |
+            compiler.jar
