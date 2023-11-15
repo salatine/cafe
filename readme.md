@@ -10,13 +10,13 @@ Para construir ou rodar o compilador, é necessário o Java 21 ou superior.
 Aqui estão alguns exemplos básicos da sintaxe da linguagem Café:
 
 ```cafe
-// Declaração de variável inteira
+# Declaração de variável inteira
 inteiro x = 1!
 
-// Declaração de variável real
+# Declaração de variável real
 real y = 1.2!
 
-// Função imprimir
+# Função imprimir
 imprimir(x * y)!
 ```
 
