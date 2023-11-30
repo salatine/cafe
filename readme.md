@@ -14,7 +14,7 @@ Aqui estão alguns exemplos básicos da sintaxe da linguagem Café:
 inteiro x = 1!
 
 # Declaração de variável real
-real y = 1.2!
+real y = 1,2!
 
 # Função imprimir
 imprimir(x * y)!
