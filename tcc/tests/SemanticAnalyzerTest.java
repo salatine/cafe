@@ -20,19 +20,19 @@ public class SemanticAnalyzerTest {
 
     @Test
     public void testDeclarationValueMismatch() {
-        String input = "inteiro a = 1.0!";
+        String input = "inteiro a = 1,0!";
         Assert.assertThrows(TypeMismatchException.class, () -> analyzeInput(input));
     }
 
     @Test
     public void testAssignmentValueMismatch() {
-        String input = "inteiro a! \n a = 1.0!";
+        String input = "inteiro a! \n a = 1,0!";
         Assert.assertThrows(TypeMismatchException.class, () -> analyzeInput(input));
     }
 
     @Test
     public void testInvalidAssignment() {
-        String input = "a = 1.0!";
+        String input = "a = 1,0!";
         Assert.assertThrows(UndeclaredIdentifierException.class, () -> analyzeInput(input));
     }
 

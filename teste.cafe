@@ -1,6 +1,8 @@
-inteiro x = 1!
-real y!
+inteiro p1 = 4!
+inteiro p2 = 5!
+inteiro p3 = 6!
+inteiro p4 = 7!
 
-y = 2.0!
+real media = (p1+p2+p3+p4) / 4,0!
 
-imprimir(x+y)!
+imprimir(media)!

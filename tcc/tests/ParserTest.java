@@ -45,7 +45,7 @@ public class ParserTest {
 
     @Test
     public void testDeclaration() throws ParserException {
-        String input = "real a = 1.0!";
+        String input = "real a = 1,0!";
 
         ProgramNode expected = createProgram(
             new DeclarationNode(

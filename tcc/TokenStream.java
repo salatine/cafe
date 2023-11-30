@@ -81,15 +81,15 @@ public class TokenStream {
     }
 
     private Token readNumber(char ch) {
-        boolean hasDot = false;
+        boolean hasComma = false;
         StringBuilder number = new StringBuilder();
 
         while (!inputStream.eof()) {
-            if (ch == '.') {
-                if (hasDot) break;
-                hasDot = true;
+            if (ch == ',') {
+                if (hasComma) break;
+                hasComma = true;
             }
-            if (isDigit(ch) || ch == '.') {
+            if (isDigit(ch) || ch == ',') {
                 number.append(ch);
             } else {
                 break;
@@ -100,8 +100,9 @@ public class TokenStream {
             ch = optCh.get();
         }
 
-        if (hasDot) {
-            return new DoubleToken(Double.parseDouble(number.toString()));
+        if (hasComma) {
+            // replace comma with dot
+            return new DoubleToken(Double.parseDouble(number.toString().replace(",", ".")));
         }
 
         return new IntToken(Integer.parseInt(number.toString()));

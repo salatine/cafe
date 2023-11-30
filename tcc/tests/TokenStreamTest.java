@@ -10,7 +10,7 @@ import tcc.tokens.*;
 import java.util.Optional;
 
 public class TokenStreamTest {
-    private static final String INPUT = "inteiro x = 1! # oi \n real y = 2.0 + 3.0!";
+    private static final String INPUT = "inteiro x = 1! # oi \n real y = 2,0 + 3,0!";
     private TokenStream tokenStream;
 
     @Before
