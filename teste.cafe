@@ -3,6 +3,6 @@ inteiro p2 = 5!
 inteiro p3 = 6!
 inteiro p4 = 7!
 
-real media = (p1+p2+p3+p4) / 4,0!
+real média = (p1+p2+p3+p4) / 4,0!
 
-imprimir(media)!
+imprimir(média)!

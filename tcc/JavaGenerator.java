@@ -3,6 +3,7 @@ package tcc;
 import tcc.nodes.*;
 
 import java.io.IOException;
+import java.text.Normalizer;
 import java.util.Optional;
 
 public class JavaGenerator {
@@ -29,7 +30,7 @@ public class JavaGenerator {
 
 
     private String generateDeclaration(DeclarationNode declarationNode) {
-        String varName = declarationNode.identifier().name();
+        String varName = generateIdentifier(declarationNode.identifier());
         String type = generateDataType(declarationNode.type());
         Optional<ExpressionNode> expression = declarationNode.expression();
 
@@ -70,7 +71,7 @@ public class JavaGenerator {
     }
 
     private String generateIdentifier(IdentifierNode identifierNode) {
-        return identifierNode.name();
+        return removeAccents(identifierNode.name());
     }
 
     private String generateAssignment(AssignmentNode assignmentNode) {
@@ -86,5 +87,9 @@ public class JavaGenerator {
 
     private String generateDouble(DoubleNode doubleNode) {
         return String.valueOf(doubleNode.value());
+    }
+
+    public static String removeAccents(String str) {
+        return Normalizer.normalize(str, Normalizer.Form.NFD).replaceAll("[^\\p{ASCII}]", "");
     }
 }
